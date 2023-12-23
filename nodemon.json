@@ -1,0 +1,10 @@
+{
+  "exec": "pnpm build && pnpm dev",
+  "delay": 1000,
+  "verbose": true,
+  "watch": ["src", "build"],
+  "execMap": {
+    "js": "pnpm -v"
+  },
+  "ext": "ts, json"
+}
