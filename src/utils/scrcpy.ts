@@ -25,6 +25,7 @@ export default class AdbScrcpy {
   structure_scrcpy_cmd(items: string[]) {
     return 'scrcpy ' + items.join(' ')
   }
+
   /** 对象转为 --参数名=参数值 */
   structure_params(obj: Record<string, string | number | undefined>) {
     return Object.entries(obj)
@@ -34,6 +35,17 @@ export default class AdbScrcpy {
         attr = attr.replace(/_/g, '-')
         return `--${attr}=${val}`
       })
+  }
+
+  /**
+   * 选择设备序列号
+   * @param cmds 参数列表
+   * @param serial_number 设备序列号
+   */
+  select_serial_number(cmds: string[], serial_number?: string) {
+    if (serial_number) {
+      cmds.unshift('-s', serial_number)
+    }
   }
 
   /** 获取设备列表 */
@@ -57,7 +69,7 @@ export default class AdbScrcpy {
    * @returns
    */
   tcpip(port: number, serial_number?: string) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const items = ['tcpip', String(port)]
 
       // 判断是否需要传入设备序列号
@@ -81,7 +93,7 @@ export default class AdbScrcpy {
    * @returns
    */
   connect(ip: string, port: number) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const items = ['connect', `${ip}:${port}`]
       const cmd = this.structure_adb_cmd(items)
       exec(cmd, (err, stdout, _stderr) => {
@@ -89,6 +101,27 @@ export default class AdbScrcpy {
           reject(err)
         } else {
           resolve(stdout)
+        }
+      })
+    })
+  }
+
+  /**
+   * 获取设备IP
+   * @param serial_number 设备序列号
+   * @returns
+   */
+  getIp(serial_number?: string) {
+    return new Promise<string | null>((resolve, reject) => {
+      const items = ['shell ip addr show wlan0']
+      this.select_serial_number(items, serial_number)
+      const cmd = this.structure_adb_cmd(items)
+
+      exec(cmd, (err, stdout, _stderr) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(Parse.ip(stdout))
         }
       })
     })
@@ -108,17 +141,20 @@ export default class AdbScrcpy {
       params.push('--otg')
     }
 
-    // 启动scrcpy
-    const childProcess = spawn('scrcpy', params)
+    return new Promise<void>((resolve, _reject) => {
+      // 启动scrcpy
+      const childProcess = spawn('scrcpy', params)
 
-    // 监听输出
-    childProcess.stdout.on('data', (data) => console.log(`${data}`))
+      // 监听输出
+      childProcess.stdout.on('data', (data) => console.log(`${data}`))
 
-    childProcess.stderr.on('data', (data) => console.log(`${data}`))
+      childProcess.stderr.on('data', (data) => console.log(`${data}`))
 
-    // 监听命令关闭事件
-    childProcess.on('close', (code) => {
-      console.log(`子进程退出，退出码 ${code}`)
+      // 监听命令关闭事件
+      childProcess.on('close', (code) => {
+        console.log(`子进程退出，退出码 ${code}`)
+        resolve()
+      })
     })
   }
 }

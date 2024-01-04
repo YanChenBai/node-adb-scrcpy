@@ -51,4 +51,21 @@ export default class Parse {
       throw new Error('解析设备列表失败 ---> ' + content)
     }
   }
+
+  /**
+   * 解析出IP
+   * @param content 返回的文本内容
+   * @returns
+   */
+  static ip(content: string) {
+    let match = content.match(/inet\s(\d+?\.\d+?\.\d+?\.\d+?)\d+/)
+    if (match) {
+      match = match[0].match(
+        /((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})(\.((2(5[0-5]|[0-4]\d))|[0-1]?\d{1,2})){3}/
+      )
+      return match ? match[0] : null
+    } else {
+      return null
+    }
+  }
 }

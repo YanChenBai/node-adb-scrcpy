@@ -4,7 +4,7 @@ import inquirer from 'inquirer'
 export default async function adb_scrcpy() {
   const adbscrcpy = new AdbScrcpy()
   const devices = await adbscrcpy.devices()
-  inquirer
+  return await inquirer
     .prompt([
       {
         type: 'rawlist',
@@ -26,6 +26,8 @@ export default async function adb_scrcpy() {
         ]
       }
     ])
-    .then(({ serial, select }) => adbscrcpy.scrcpy({ serial: serial }, select))
+    .then(async ({ serial, select }) => {
+      return adbscrcpy.scrcpy({ serial: serial }, select)
+    })
     .catch((error) => console.error(error))
 }
