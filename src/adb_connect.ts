@@ -32,12 +32,7 @@ export default async function adb_connect() {
   }
 
   // 获取ip地址
-  const ip = await adbscrcpy.getIp(serial)
-
-  if (!ip) {
-    console.error('获取IP地址错误!')
-    return null
-  }
+  const ip = await adbscrcpy.getIp(serial) || '192.168.3.128'
 
   return await inquirer
     .prompt([
